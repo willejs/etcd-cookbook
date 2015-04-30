@@ -10,11 +10,11 @@ default[:etcd][:listen_peer_urls] = ''
 # address to announce to clients specified as ip:port or ip (will default to :7001)
 default[:etcd][:listen_client_urls] = ''
 
-# List of URLs to listen on for peer traffic. if not set we compute it to http://localhost:2380,http://localhost:7001
-default[:etcd][:initial_advertise_peer_urls] = ''
-
-# List of URLs to listen on for client traffic. if not set we compute it to http://localhost:2379,http://localhost:4001
+# List of URLs to listen on for client traffic. if not set we compute it to http://#{node['opaddress']}:2379,http://#{node['opaddress']}:4001
 default[:etcd][:advertise_client_urls] = ''
+
+# List of URLs to listen on for client traffic. if not set we compute it to http://#{node['opaddress']}:2380,http://#{node['opaddress']}:7001
+default[:etcd][:advertise_peer_urls] = ''
 
 # set if you want to override the node name. It uses fqdn by default
 default[:etcd][:name] = ''
@@ -36,6 +36,9 @@ default[:etcd][:discovery_srv] = ''
 
 # Initial cluster configuration for bootstrapping
 default[:etcd][:initial_cluster] = ''
+
+# List of URLs to listen on for peer traffic. if not set we compute it to http://localhost:2380,http://localhost:7001
+default[:etcd][:initial_advertise_peer_urls] = ''
 
 # Initial cluster state ("new" or "existing").
 default[:etcd][:initial_cluster_state] = 'new'

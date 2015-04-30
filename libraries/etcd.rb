@@ -33,6 +33,16 @@ class Chef
           cmd
         end
 
+        # construct initial cluster config
+        def initial_cluster(option, key, node_name)
+            cmd = ''
+            val = node[:etcd][key.to_sym]
+            if val.match(/.*:(\d)/)
+              cmd << " #{option}=#{val}"
+            else
+              cmd << " #{option}=#{node_name}=#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:2380,#{node_name}=#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:7001"
+            end
+        end
 
         # determine node name
         def node_name
@@ -52,6 +62,7 @@ class Chef
           cmd << lookup_addr('--advertise-client-urls', :advertise_client_urls, [2379, 4001])
           cmd << lookup_addr('--listen-peer-urls', :listen_peer_urls, [2380, 7001])
           cmd << lookup_addr('--listen-client-urls', :listen_client_urls, [2379, 4001])
+          cmd << initial_cluster('--initial-cluster', :initial_cluster, node_name)
           cmd
         end
         # rubocop:endable MethodLength
