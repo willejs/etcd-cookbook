@@ -13,42 +13,37 @@ class Chef
         # return cmd args for discovery/cluster members
         def discovery_cmd
           cmd = ''
-          discovery =  node[:etcd][:discovery]
-          if discovery.length > 0
+          discovery = node[:etcd][:discovery]
+          unless discovery.empty?
             cmd << " -discovery='#{discovery}'"
           end
           cmd
         end
 
-        def lookup_addr(option, key, port)
+        def lookup_addr(option, key, ports)
           cmd = ''
           val = node[:etcd][key.to_sym]
-          if val.match(/.*:(\d)/)
+          unless val.empty?
             cmd << " #{option}=#{val}"
-          elsif val.length > 0
-            cmd << " #{option}=#{val}:#{port[0]},#{val}:#{port[1]}"
           else
-            cmd << " #{option}=#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:#{port[0]},#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:#{port[1]}"
+            cmd << " #{option}=#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:#{ports[0]},#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:#{ports[1]}"
           end
           cmd
         end
 
-        # construct initial cluster config
-        def initial_cluster(option, key, node_name)
-            cmd = ''
-            val = node[:etcd][key.to_sym]
-            if val.match(/.*:(\d)/)
-              cmd << " #{option}=#{val}"
-            else
-              cmd << " #{option}=#{node_name}=#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:2380,#{node_name}=#{node[:etcd][:http_protocol]}#{node[:ipaddress]}:7001"
-            end
+        def cluster_args
+          cmd = ''
+          node[:etcd][:cluster].each do | arg, value |
+            cmd << " --#{arg.gsub('_', '-')}=#{value}" if value.match(/.*:(\d)/)
+          end
+          cmd
         end
 
         # determine node name
         def node_name
           a = node.name
           a = node[:fqdn] unless node[:fqdn].nil?
-          a = node[:etcd][:name] unless node[:etcd][:name].nil?
+          a = node[:etcd][:name] unless node[:etcd][:name].empty?
           a
         end
 
@@ -56,13 +51,11 @@ class Chef
         #
         def args
           cmd = node[:etcd][:args].dup
-          cmd << " -name #{node_name}"
+          cmd << " -name #{node_name}" unless node_name.empty?
           cmd << discovery_cmd
-          cmd << lookup_addr('--initial-advertise-peer-urls', :advertise_client_urls, [2380, 7001])
-          cmd << lookup_addr('--advertise-client-urls', :advertise_client_urls, [2379, 4001])
           cmd << lookup_addr('--listen-peer-urls', :listen_peer_urls, [2380, 7001])
           cmd << lookup_addr('--listen-client-urls', :listen_client_urls, [2379, 4001])
-          cmd << initial_cluster('--initial-cluster', :initial_cluster, node_name)
+          cmd << cluster_args
           cmd
         end
         # rubocop:endable MethodLength
@@ -85,7 +78,7 @@ class Chef
         #
         def bin_url
           version = node[:etcd][:version]
-          if  node[:etcd][:url]
+          if node[:etcd][:url]
             node[:etcd][:url]
           else
             "https://github.com/coreos/etcd/releases/download/v#{version}/#{package_name}"
