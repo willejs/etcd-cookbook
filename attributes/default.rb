@@ -10,12 +10,6 @@ default[:etcd][:listen_peer_urls] = ''
 # address to announce to clients specified as ip:port or ip (will default to :7001)
 default[:etcd][:listen_client_urls] = ''
 
-# List of URLs to listen on for client traffic. if not set we compute it to http://#{node['opaddress']}:2379,http://#{node['opaddress']}:4001
-default[:etcd][:advertise_client_urls] = ''
-
-# List of URLs to listen on for client traffic. if not set we compute it to http://#{node['opaddress']}:2380,http://#{node['opaddress']}:7001
-default[:etcd][:advertise_peer_urls] = ''
-
 # set if you want to override the node name. It uses fqdn by default
 default[:etcd][:name] = ''
 
@@ -28,20 +22,37 @@ default[:etcd][:env_scope] = true
 # service start args to pass
 default[:etcd][:args] = ''
 
-# v0.3.0 API cluster discovery
+# v2.0.0 API cluster discovery
 default[:etcd][:discovery] = ''
 
-# v0.3.0 API cluster discovery dns srv records
-default[:etcd][:discovery_srv] = ''
-
-# Initial cluster configuration for bootstrapping
-default[:etcd][:initial_cluster] = ''
+# Clustering flags. set any of these and they are included
 
 # List of URLs to listen on for peer traffic. if not set we compute it to http://localhost:2380,http://localhost:7001
-default[:etcd][:initial_advertise_peer_urls] = ''
+default[:etcd][:cluster][:initial_advertise_peer_urls] = ''
+
+# Initial cluster configuration for bootstrapping
+default[:etcd][:cluster][:initial_cluster] = ''
 
 # Initial cluster state ("new" or "existing").
-default[:etcd][:initial_cluster_state] = 'new'
+default[:etcd][:cluster][:initial_cluster_state] = 'new'
+
+# Initial cluster token for the etcd cluster during bootstrap.
+default[:etcd][:cluster][:initial_cluster_token] = ''
+
+# List of URLs to listen on for client traffic. if not set we compute it to http://#{node['opaddress']}:2379,http://#{node['opaddress']}:4001
+default[:etcd][:cluster][:advertise_client_urls] = ''
+
+# Discovery URL used to bootstrap the cluster.
+default[:etcd][:cluster][:discovery] = ''
+
+# DNS srv domain used to bootstrap the cluster.
+default[:etcd][:cluster][:discovery_srv] = ''
+
+# Expected behavior ("exit" or "proxy") when discovery services fails.
+default[:etcd][:cluster][:discovery_fallback] = ''
+
+# HTTP proxy to use for traffic to discovery service.
+default[:etcd][:cluster][:discovery_proxy] = ''
 
 # restart etcd when the config file is updated
 default[:etcd][:trigger_restart] = true
@@ -54,13 +65,13 @@ default[:etcd][:upstart][:start_on] = 'started networking'
 default[:etcd][:upstart][:stop_on] = 'shutdown'
 
 # Release to install
-default[:etcd][:version] = '2.0.3'
+default[:etcd][:version] = '2.0.10'
 
 # Auto respawn
 default[:etcd][:respawn] = false
 
 # Sha for github tarball Linux by default
-default[:etcd][:sha256] = '0d4dd3ec5c3961433f514544ae7106676f313fe2fa7aa85cde0f2454f1a65b2f'
+default[:etcd][:sha256] = 'c597cb3684b9304ae86f0e3145204c75cf4720080bfecb796a8980044f7a45c3'
 
 # Use this to supply your own url to a tarball
 default[:etcd][:url] = nil
@@ -72,7 +83,7 @@ default[:etcd][:state_dir] = '/var/cache/etcd/state'
 default[:etcd][:source][:repo] = 'https://github.com/coreos/etcd'
 default[:etcd][:source][:revision] = 'HEAD'
 default[:etcd][:source][:go_ver] = '1.1.2'
-default[:etcd][:source][:go_url] = nil
+default[:etcd][:source][:go_url] = ''
 default[:etcdctl][:source][:repo] = 'https://github.com/coreos/etcdctl'
 default[:etcdctl][:source][:revision] = 'HEAD'
 
