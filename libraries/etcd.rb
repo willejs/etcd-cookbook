@@ -39,19 +39,11 @@ class Chef
           cmd
         end
 
-        # determine node name
-        def node_name
-          a = node.name
-          a = node[:fqdn] unless node[:fqdn].nil?
-          a = node[:etcd][:name] unless node[:etcd][:name].empty?
-          a
-        end
-
         # when you specify args in config we don't compute. so you have to specify all of them
         #
         def args
           cmd = node[:etcd][:args].dup
-          cmd << " -name #{node_name}" unless node_name.empty?
+          cmd << " -name #{node[:etcd][:name]}" unless node[:etcd][:name].empty?
           cmd << discovery_cmd
           cmd << lookup_addr('--listen-peer-urls', :listen_peer_urls, [2380, 7001])
           cmd << lookup_addr('--listen-client-urls', :listen_client_urls, [2379, 4001])
